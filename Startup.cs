@@ -25,6 +25,7 @@ namespace Lab9
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddSession();
 
             string connectionString = Config.ConnectionString("StudentRecord");
             services.AddDbContext<StudentRecordContext>(options => options.UseSqlServer(connectionString));
@@ -42,8 +43,11 @@ namespace Lab9
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
             }
             app.UseStaticFiles();
+
+            app.UseSession();
 
             app.UseRouting();
 
