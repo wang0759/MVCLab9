@@ -109,14 +109,24 @@ namespace Lab9.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CourseCode,StudentId,Grade")] AcademicRecord academicRecord)
         {
+            var existing = _context.AcademicRecord.Where(a => a.CourseCode.Equals(academicRecord.CourseCode) && a.StudentId.Equals(academicRecord.StudentId)).FirstOrDefault();
+            ViewData["Error"] = "";
+            if (existing != null)
+            {
+                ViewData["Error"] = "The student has already had this academic record";
+            }
+            else
+            {           
             if (ModelState.IsValid)
             {
                 _context.Add(academicRecord);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            }
-            ViewData["CourseCode"] = new SelectList(_context.Course, "Code", "Code", academicRecord.CourseCode);
-            ViewData["StudentId"] = new SelectList(_context.Student, "Id", "Id", academicRecord.StudentId);
+            } }
+            //ViewData["CourseCode"] = new SelectList(_context.Course, "Code", "Code", academicRecord.CourseCode);
+            //ViewData["StudentId"] = new SelectList(_context.Student, "Id", "Id", academicRecord.StudentId);
+            ViewData["CourseCode"] = new SelectList(_context.Course.Select(c => new { Code = c.Code, Course = c.Code + " - " + c.Title }), "Code", "Course");
+            ViewData["StudentId"] = new SelectList(_context.Student.Select(s => new { Id = s.Id, Student = s.Id + " - " + s.Name }), "Id", "Student");
             return View(academicRecord);
         }
 
