@@ -15,9 +15,21 @@
             <input type="hidden" asp-for="CourseCode" />
             <input type="hidden" asp-for="StudentId" />
 
+            <div class="form-group">
+                <label class="control-label font-weight-bold">Course</label>
+                <p>
+                    @ViewData["CourseCode"]-@ViewData["CourseName"]
+                </p>
+            </div>
 
             <div class="form-group">
-                <label asp-for="Grade" class="control-label"></label>
+                <label class="control-label font-weight-bold">Student</label>
+                <p>@ViewData["StudentId"]-@ViewData["StudentName"]</p>
+            </div>
+
+
+            <div class="form-group">
+                <label asp-for="Grade" class="control-label font-weight-bold"></label>
                 <input asp-for="Grade" class="form-control" />
                 <span asp-validation-for="Grade" class="text-danger"></span>
             </div>

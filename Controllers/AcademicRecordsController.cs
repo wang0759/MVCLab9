@@ -131,20 +131,25 @@ namespace Lab9.Controllers
         }
 
         // GET: AcademicRecords/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string course, string student)
         {
-            if (id == null)
+            if (course == null || student == null)
             {
                 return NotFound();
             }
 
-            var academicRecord = await _context.AcademicRecord.FindAsync(id);
+            var academicRecord = _context.AcademicRecord.Where(a=>a.CourseCode.Equals(course) && a.StudentId.Equals(student)).FirstOrDefault();
             if (academicRecord == null)
             {
                 return NotFound();
             }
-            ViewData["CourseCode"] = new SelectList(_context.Course, "Code", "Code", academicRecord.CourseCode);
-            ViewData["StudentId"] = new SelectList(_context.Student, "Id", "Id", academicRecord.StudentId);
+
+            var selectedCourse = _context.Course.Where(a => a.Code.Equals(course)).FirstOrDefault();
+            var selectedStudent = _context.Student.Where(s => s.Id.Equals(student)).FirstOrDefault();
+            ViewData["CourseCode"] =  academicRecord.CourseCode;
+            ViewData["CourseName"] = selectedCourse.Title;
+            ViewData["StudentId"] = academicRecord.StudentId;
+            ViewData["StudentName"] = selectedStudent.Name;
             return View(academicRecord);
         }
 
@@ -153,12 +158,8 @@ namespace Lab9.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("CourseCode,StudentId,Grade")] AcademicRecord academicRecord)
+        public async Task<IActionResult> Edit([Bind("CourseCode,StudentId,Grade")] AcademicRecord academicRecord)
         {
-            if (id != academicRecord.StudentId)
-            {
-                return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
