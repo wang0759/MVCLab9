@@ -16,15 +16,15 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="CourseCode" class="control-label"></label>
+                <label asp-for="CourseCodeNavigation" class="control-label font-weight-bold"></label>
                 <select asp-for="CourseCode" class ="form-control" asp-items="ViewBag.CourseCode"></select>
             </div>
             <div class="form-group">
-                <label asp-for="StudentId" class="control-label"></label>
+                <label asp-for="Student" class="control-label font-weight-bold"></label>
                 <select asp-for="StudentId" class ="form-control" asp-items="ViewBag.StudentId"></select>
             </div>
             <div class="form-group">
-                <label asp-for="Grade" class="control-label"></label>
+                <label asp-for="Grade" class="control-label font-weight-bold"></label>
                 <input asp-for="Grade" class="form-control" />
                 <span asp-validation-for="Grade" class="text-danger"></span>
             </div>

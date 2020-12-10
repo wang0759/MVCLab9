@@ -191,5 +191,92 @@ namespace Lab9.Controllers
         {
             return _context.AcademicRecord.Any(e => e.StudentId == id);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> EditAll(string? sort)
+        {
+            string order = "";
+            if (HttpContext.Session.GetString("sort") == sort)
+            {
+                if (HttpContext.Session.GetString("order")==null || HttpContext.Session.GetString("order") == "desc")
+                {
+                    order = "asc";
+                    HttpContext.Session.SetString("order", order);
+                }
+                else
+                {
+                    order = "desc";
+                    HttpContext.Session.SetString("order", order);
+                }
+
+            }
+            else
+            {
+                if(string.IsNullOrEmpty(sort)) { return new EmptyResult(); }
+                HttpContext.Session.SetString("sort", sort);
+            }
+
+            if (sort == "course")
+            {
+                IOrderedQueryable<AcademicRecord> list;
+                if(order == "desc")
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderByDescending(a => a.CourseCode);
+                }
+                else 
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderBy(a => a.CourseCode);
+                }
+                return View(list.ToArray());
+            }
+            else if (sort == "student")
+            {
+                IOrderedQueryable<AcademicRecord> list;
+                if (order == "desc")
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderByDescending(a => a.StudentId);
+                }
+                else
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderBy(a => a.StudentId);
+                }
+                return View(list.ToArray());
+            }
+            else if (sort == "grade")
+            {
+                IOrderedQueryable<AcademicRecord> list;
+                if(order == "desc")
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderByDescending(a => a.Grade);
+                }
+                else
+                {
+                    list = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).OrderBy(a => a.Grade);
+                }
+                return View(list.ToArray());
+            }
+            AcademicRecord[] studentRecordcontext = _context.AcademicRecord.Include(a => a.CourseCodeNavigation).Include(a => a.Student).ToArray();
+            return View(studentRecordcontext);
+
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAll(AcademicRecord[] academicRecords)
+        {
+            if (ModelState.IsValid)
+            {
+                foreach(AcademicRecord academicRecord in academicRecords)
+                {
+                    _context.Update(academicRecord);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            return Redirect("/AcademicRecords");
+        }
+
+     
+
+
     }
 }
