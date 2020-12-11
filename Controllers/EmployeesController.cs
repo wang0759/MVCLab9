@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Lab9.Models.DataAccess;
+using Lab9.Models;
 
 namespace Lab9.Controllers
 {
@@ -21,7 +22,8 @@ namespace Lab9.Controllers
         // GET: Employees
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Employee.ToListAsync());
+            var list = _context.Employee.Include(e => e.EmployeeRole).ThenInclude(e => e.Role);
+            return View(await list.ToListAsync());
         }
 
         // GET: Employees/Details/5
@@ -45,7 +47,8 @@ namespace Lab9.Controllers
         // GET: Employees/Create
         public IActionResult Create()
         {
-            return View();
+            EmployeeRoleSelections employeeRoleSelections = new EmployeeRoleSelections();
+            return View(employeeRoleSelections);
         }
 
         // POST: Employees/Create
@@ -53,15 +56,23 @@ namespace Lab9.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,UserName,Password")] Employee employee)
+        public async Task<IActionResult> Create(EmployeeRoleSelections employeeRoleSelections)
         {
+            if(!employeeRoleSelections.roleSelections.Any(m => m.Selected))
+            {
+                ModelState.AddModelError("roleSelections", "You mast select at least one role!");
+            }
+            if (_context.Employee.Any(a => a.UserName == employeeRoleSelections.employee.UserName))
+            {
+                ModelState.AddModelError("Employee.UserName", "This user name already exists!");
+            }
             if (ModelState.IsValid)
             {
-                _context.Add(employee);
+                _context.Add(employeeRoleSelections.employee);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(employee);
+            return View(employeeRoleSelections);
         }
 
         // GET: Employees/Edit/5
@@ -77,7 +88,21 @@ namespace Lab9.Controllers
             {
                 return NotFound();
             }
-            return View(employee);
+            var roles = _context.Role.ToList();
+            var roleSelections = new List<RoleSelection>();
+            foreach(Role role in roles)
+            {
+                bool selected = false;
+                if(_context.EmployeeRole.Any(a=>a.EmployeeId==id && a.RoleId == role.Id))
+                {
+                    selected = true;
+                }
+                roleSelections.Add(new RoleSelection(role, selected));
+            }
+
+            EmployeeRoleSelections employeeRoleSelections = new EmployeeRoleSelections { employee = employee, roleSelections = roleSelections };
+
+            return View(employeeRoleSelections);
         }
 
         // POST: Employees/Edit/5
@@ -85,34 +110,41 @@ namespace Lab9.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,UserName,Password")] Employee employee)
+        public async Task<IActionResult> Edit(int id, EmployeeRoleSelections employeeRoleSelections)
         {
-            if (id != employee.Id)
+            if (!employeeRoleSelections.roleSelections.Any(m=>m.Selected))
             {
-                return NotFound();
+                ModelState.AddModelError("roleSelections", "You must select at least one role!");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(employee);
+                    var allEmployeeRoles = _context.EmployeeRole.Where(e => e.EmployeeId == id).ToList();
+                    if (allEmployeeRoles.Count > 0)
+                    {
+                        _context.RemoveRange(allEmployeeRoles);
+                    }
+                    foreach (RoleSelection roleSelection in employeeRoleSelections.roleSelections)
+                    {
+                        if (roleSelection.Selected)
+                        {
+                            _context.EmployeeRole.Add(new EmployeeRole { EmployeeId = id, RoleId = roleSelection.role.Id });
+                        }
+                    }
+                    _context.Update(employeeRoleSelections.employee);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!EmployeeExists(employee.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
+                    
                         throw;
-                    }
+                    
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(employee);
+            return View(employeeRoleSelections);
         }
 
         // GET: Employees/Delete/5
@@ -123,14 +155,26 @@ namespace Lab9.Controllers
                 return NotFound();
             }
 
-            var employee = await _context.Employee
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var employee = await _context.Employee.FindAsync(id);
             if (employee == null)
             {
                 return NotFound();
             }
 
-            return View(employee);
+            var roles = _context.Role.ToList();
+            var roleSelections = new List<RoleSelection>();
+            foreach (Role role in roles)
+            {
+                bool selected = false;
+                if (_context.EmployeeRole.Any(e => e.EmployeeId == id && e.RoleId == role.Id))
+                {
+                    selected = true;
+                }
+                roleSelections.Add(new RoleSelection(role, selected));
+            }
+
+            EmployeeRoleSelections employeeRoleSelections = new EmployeeRoleSelections { employee = employee, roleSelections = roleSelections };
+            return View(employeeRoleSelections);
         }
 
         // POST: Employees/Delete/5
@@ -138,6 +182,8 @@ namespace Lab9.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var employeeRoleSelections = _context.EmployeeRole.Where(e => e.EmployeeId == id).ToList();
+            _context.EmployeeRole.RemoveRange(employeeRoleSelections);
             var employee = await _context.Employee.FindAsync(id);
             _context.Employee.Remove(employee);
             await _context.SaveChangesAsync();
