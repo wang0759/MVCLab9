@@ -26,25 +26,8 @@ namespace Lab9.Controllers
             return View(await list.ToListAsync());
         }
 
-        // GET: Employees/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var employee = await _context.Employee
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-
-            return View(employee);
-        }
-
-        // GET: Employees/Create
+     
+       
         public IActionResult Create()
         {
             EmployeeRoleSelections employeeRoleSelections = new EmployeeRoleSelections();
@@ -70,6 +53,16 @@ namespace Lab9.Controllers
             {
                 _context.Add(employeeRoleSelections.employee);
                 await _context.SaveChangesAsync();
+
+                foreach(RoleSelection roleSelection in employeeRoleSelections.roleSelections)
+                {
+                    if (roleSelection.Selected)
+                    {
+                        EmployeeRole employeeRole = new EmployeeRole { RoleId = roleSelection.role.Id, EmployeeId = employeeRoleSelections.employee.Id };
+                        _context.EmployeeRole.Add(employeeRole);
+                    }
+                }
+                _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
             return View(employeeRoleSelections);
