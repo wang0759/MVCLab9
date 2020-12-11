@@ -8,12 +8,12 @@ namespace Lab9.Models
 {
     public class EmployeeRoleSelections
     {
-        public Employee employee { get; set; }
+        public EmployeeMetaData employee { get; set; }
         public List<RoleSelection> roleSelections { get; set; }
 
         public EmployeeRoleSelections()
         {
-            this.employee = new Employee();
+            this.employee = new EmployeeMetaData();
             this.roleSelections = new List<RoleSelection>();
             StudentRecordContext context = new StudentRecordContext();
 

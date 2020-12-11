@@ -27,7 +27,8 @@
             </div>
             <div class="form-group">
                 <label class="control-label">Job Title</label><br />
-                @for (int i=0; i<Model.roleSelections.Count; i++)
+                @*C# function is wrapped in @ and everything is in Model, in HTML, call them directedly such as employee.Id*@
+                @for (int i=0; i<Model.roleSelections.Count; i++) 
                 {
                     <label asp-for="@Model.roleSelections[i].Selected" class="control-label">@Model.roleSelections[i].role.Role1</label>
                     <input type="checkbox" asp-for="@Model.roleSelections[i].Selected"/>

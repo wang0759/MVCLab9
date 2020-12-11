@@ -17,7 +17,7 @@ namespace Lab9.Models.DataAccess
 
         public virtual DbSet<AcademicRecord> AcademicRecord { get; set; }
         public virtual DbSet<Course> Course { get; set; }
-        public virtual DbSet<Employee> Employee { get; set; }
+        public virtual DbSet<EmployeeMetaData> Employee { get; set; }
         public virtual DbSet<EmployeeRole> EmployeeRole { get; set; }
         public virtual DbSet<Registration> Registration { get; set; }
         public virtual DbSet<Role> Role { get; set; }
@@ -73,7 +73,7 @@ namespace Lab9.Models.DataAccess
                     .HasMaxLength(50);
             });
 
-            modelBuilder.Entity<Employee>(entity =>
+            modelBuilder.Entity<EmployeeMetaData>(entity =>
             {
                 entity.Property(e => e.Name)
                     .IsRequired()
